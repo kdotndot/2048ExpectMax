@@ -51,10 +51,28 @@ def genScore(table):
     score = maxnum + (2*num) + (3*empty)
     return score
 
+def NextMoveRecursion(tables, height):
+    
+    if height >= 1:
+        #print("In if")
+        score = 0
+        for x in range(0, len(tables)):
+            score += genScore(tables[x])
+        return score
+    else:
+        #print("In else")
+        for x in range(0, len(tables)):
+            for y in range(0, len(moves)):
+                mergedTable = merger(tables[x], moves[x])
+                table2, table4 = genRandBoards(mergedTable)
+                numTables = len(table2) + len(table4)
+                return NextMoveRecursion(table2, height + 1) +  NextMoveRecursion(table4, height + 1)
+    
+
 def NextMove(table, step):
     maxscore = 0
     #Create boards for all possible moves
-    numtables = 0
+    
     scores = [0,0,0,0,0]
     
     #Find maxscore using weights for each probability of each move
@@ -63,18 +81,20 @@ def NextMove(table, step):
         table2, table4 = genRandBoards(mergedTable)
         numTables = len(table2) + len(table4)
         score = 0
-        for y in range(0, len(table2)):
+        """ for y in range(0, len(table2)):
             score += (1/numTables) * .9 * genScore(table2[y])
         for y in range(0, len(table4)):
-            score += (1/numTables) * .1 * genScore(table4[y])
+            score += (1/numTables) * .1 * genScore(table4[y]) """
+        
+        score += (1/numTables) * .9 * NextMoveRecursion(table2, 0)
+        score += (1/numTables) * .1 * NextMoveRecursion(table4, 0) 
         scores[x] = score
-    print(scores)
     ind = 0
     for x in range(0, len(moves)):
         if scores[x] > maxscore:
             maxscore = scores[x]
             ind = x
-    
+    #print(scores)
     return ind
     
  
@@ -83,7 +103,6 @@ def merger(table, dir):
     z2 = np.zeros((4, 4))
     table = np.array(table)
     if dir == UP:
-        print(table)
         table = table[:,::-1].T
         table = mergeHelp(table, z1)
         table = merge(table)
@@ -134,7 +153,9 @@ if __name__ == "__main__":
             [0,0,0,4]
             ]
     
-    
+    printMatrix(merger(temp, UP))
+    print("")
+    printMatrix(merger(temp, LEFT))
     print(NextMove(temp, 0))
     
     
